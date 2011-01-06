@@ -1,0 +1,3 @@
+
+
+Write a first integration test with outbound SMTP channel, and inbound IMAP

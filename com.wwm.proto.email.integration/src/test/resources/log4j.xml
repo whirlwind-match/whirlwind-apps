@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<!-- 
+    NOTE: This is the default log4j configuration for development.  If you want to change it for only yourself, then make a copy in 
+    your personal config directory, and that will be used to override this default.
+ -->
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+	<appender name="console" class="org.apache.log4j.ConsoleAppender">
+		<param name="Target" value="System.out" />
+		<layout class="org.apache.log4j.PatternLayout">
+            <!-- Relative time used for build and test.  For deployment, %d{ABSOLUTE} is used -->
+			<param name="ConversionPattern" value="[%d] %-5p %C - %m%n" />
+		</layout>
+	</appender>
+
+    <appender name="stderr" class="org.apache.log4j.ConsoleAppender">
+        <param name="Target" value="System.err" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <!-- Relative time used for build and test.  For deployment, %d{ABSOLUTE} is used -->
+            <param name="ConversionPattern" value="[%d] %-5p %C - %m%n" />
+        </layout>
+    </appender>
+
+
+    <!-- For all method call timings, use info level here -->
+    <logger name="perf-logger" additivity="false">
+        <level value="info" />
+        <appender-ref ref="stderr"/>
+    </logger>
+
+
+    <!-- ========= DEPENDENCIES ==========-->
+
+    <logger name="net.sf.ehcache">
+        <level value="info" />
+    </logger>
+
+
+	<!-- Show config, List Entities on flush  -->
+	<logger name="org.hibernate.cfg">
+		<level value="warn" />
+	</logger>
+
+	<logger name="org.hibernate">
+		<level value="warn" />
+	</logger>
+
+
+    <logger name="org.springframework">
+        <level value="debug" />
+    </logger>
+
+    <logger name="org.springframework.integration">
+        <level value="debug" />
+    </logger>
+
+    <logger name="org.springframework.ldap.core.LdapTemplate">
+        <level value="warn" />
+    </logger>
+
+    <logger name="org.springframework.transaction">
+        <level value="info" />
+    </logger>
+
+    <root>
+        <priority value="warn" />
+        <appender-ref ref="console" />
+    </root>
+
+</log4j:configuration>
