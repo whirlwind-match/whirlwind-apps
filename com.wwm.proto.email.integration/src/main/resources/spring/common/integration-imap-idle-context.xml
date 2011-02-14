@@ -15,9 +15,10 @@
 	<int:channel id="receiveChannel" />
 	
 	<int-mail:imap-idle-channel-adapter
-		id="customAdapter" store-uri="imaps://${inbound.imap.userid}:${inbound.imap.password}@imap.gmail.com:993/inbox"
+		id="customAdapter" store-uri="imap://${inbound.imap.userid}:${inbound.imap.password}@imap.googlemail.com:993/[Gmail]/All Mail"
 		channel="receiveChannel" auto-startup="true" should-delete-messages="false" 
 		java-mail-properties="javaMailProperties" />
+		
 	<util:properties id="javaMailProperties">
 		<prop key="mail.imap.socketFactory.class">javax.net.ssl.SSLSocketFactory</prop>
 		<prop key="mail.imap.socketFactory.fallback">false</prop>

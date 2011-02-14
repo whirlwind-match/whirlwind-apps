@@ -1,6 +1,8 @@
 package com.wwm.proto.email.integration;
 
 
+import javax.mail.internet.MimeMessage;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -23,15 +25,26 @@ public class ReceiveEmailTest {
 	private DirectChannel imapChannel;
 	
 	
-	@Test(timeout=10000)
-	public void receiveOneEmailWithin10Seconds() {
+	@Test(timeout=20000)
+	public void receiveOneEmailWithin10Seconds() throws InterruptedException {
 		
 		imapChannel.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				log.info("Message: " + message);
+				MimeMessage mail = (MimeMessage) message.getPayload();
+				try {
+					log.info(" from " + mail.getSender() + 
+							" : " + mail.getSubject());
+				}
+				catch (javax.mail.MessagingException e) {
+					throw new MessagingException("Unexpected javamail exception", e);
+				}
 			}
 		});
 
+		log.info("=== Waiting for messages ===" );
+
+		Thread.sleep(19000);
 	}
 	
 }
