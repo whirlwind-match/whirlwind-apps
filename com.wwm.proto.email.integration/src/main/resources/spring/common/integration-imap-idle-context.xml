@@ -1,10 +1,9 @@
-<beans
-	xmlns="http://www.springframework.org/schema/beans"
-	xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+<beans xmlns="http://www.springframework.org/schema/beans"
+				xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
+				xmlns:int="http://www.springframework.org/schema/integration"
+				xmlns:util="http://www.springframework.org/schema/util"
+				xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+				xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 		http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail-2.0.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
@@ -12,10 +11,11 @@
 
 	<import resource="classpath:property-substitution-context.xml" />
 
+	<int:channel id="sendSmtpChannel"/>
 	<int:channel id="receiveChannel" />
 	
 	<int-mail:imap-idle-channel-adapter
-		id="customAdapter" store-uri="imap://${inbound.imap.userid}:${inbound.imap.password}@imap.googlemail.com:993/[Gmail]/All Mail"
+		id="imapIdleAdapter" store-uri="imap://${inbound.imap.userid}:${inbound.imap.password}@imap.googlemail.com:993/[Gmail]/All Mail"
 		channel="receiveChannel" auto-startup="true" should-delete-messages="false" 
 		java-mail-properties="javaMailProperties" />
 		
@@ -24,5 +24,15 @@
 		<prop key="mail.imap.socketFactory.fallback">false</prop>
 		<prop key="mail.store.protocol">imaps</prop>
 		<prop key="mail.debug">false</prop>
+		<prop key="mail.smtp.starttls.enable">true</prop>
 	</util:properties>
+	
+	<int-mail:outbound-channel-adapter channel="sendSmtpChannel" 
+		host="smtp.googlemail.com" port="587" 
+		auto-startup="true"
+		java-mail-properties="javaMailProperties"
+		username="${outbound.smtp.userid}" 
+		password="${outbound.smtp.password}" 
+	/>
+
 </beans>

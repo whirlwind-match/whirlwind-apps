@@ -1,3 +1,21 @@
 
 
-Write a first integration test with outbound SMTP channel, and inbound IMAP
+[done] Write a first integration test with outbound SMTP channel, and inbound IMAP
+[done] Check that from, subject and body all received correctly as part of test.
+
+
+Create tests at level of conversation (we inject MimeMessage into receiveChannel, and test correct messages appear on smtpChannel):
+	- With conversationService (i.e. abstraction of messageThread in WWM stuff) mocked, send an initial message for a conversation
+	
+	Scenario 1:
+	- Conversation is between 2 people: given ConversationContribution, the test ensures that the correct recipients are looked up, and
+	MimeMessages appear on smtpChannel for sending.
+	
+	- Conversation between > 2 people
+	- Conversation where one party has unsubscribed
+       
+       
+       
+Which requires:
+- canonical data model representing a ConversationContribution (Subject, Text, conversationId, authorId, Mood, copyAuthorFlag)
+- Enricher, Transformer & Splitter to create emails for recipients (for large numbers, drop back to using bcc with To: field set to fm.router itself)
