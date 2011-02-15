@@ -19,3 +19,22 @@ Create tests at level of conversation (we inject MimeMessage into receiveChannel
 Which requires:
 - canonical data model representing a ConversationContribution (Subject, Text, conversationId, authorId, Mood, copyAuthorFlag)
 - Enricher, Transformer & Splitter to create emails for recipients (for large numbers, drop back to using bcc with To: field set to fm.router itself)
+
+
+Whiteboard with RM comes up with the following:
+===============================================
+IMAP -> Channel -> Header Enricher which combines lookup conv with lookup dist list (unless they scale differently, therefore might want a 
+	queue in between and to be able to load balance one) -> SMTP and use SMTP's recipients field for distribution (no splitter needed), which can be
+	done by putting the whole lot in BCC.
+	
+Principles. Only introduce channels where scaling needed.  Write minimal code.
+
+Use headers for enrichment and keep body as payload.
+
+Enrichment process:
+- Look up what accountIds are part of the conversation (references conversation service)
+- Look up preferred email address for each account (ref account service)
+- Ensure SMTP headers are as required (or MimeMessage is set up accordingly..)
+
+	
+ 
