@@ -3,15 +3,19 @@ package com.wwm.proto.email.integration;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyString;
 
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,23 +36,34 @@ public class ReceiveEmailTest {
 	private static Logger log = LoggerFactory.getLogger(ReceiveEmailTest.class);
 	
 	@Autowired
-	@Qualifier("receiveChannel")
+	@Qualifier("emailIn")
 	private DirectChannel imapChannel;
 	
 	
 	@Autowired
-	@Qualifier("sendSmtpChannel")
+	@Qualifier("emailOut")
 	private DirectChannel sendSmtpChannel;
 
+	@Autowired
+	private ConversationService conversationService; // mock
+
+	
 	protected MimeMessage receivedMessage;
 	
 	
-	@Test//(timeout=30000)
-	public void receiveOneEmailWithin10Seconds() throws Exception {
+	@Before
+	public void setupConversationServiceMocks() {
+		Mockito.when(conversationService.getAccountsForConversation(anyString())).thenReturn(Arrays.asList("11111abc","11111def"));
+	}
+	
+	
+	@Test
+	public void receiveOneEmailWithinAGivenTimePeriod() throws Exception {
 		
 		final CountDownLatch latch = new CountDownLatch(1);
 		
 		imapChannel.subscribe(new MessageHandler() {
+			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				log.info("Message: " + message);
 				MimeMessage mail = (MimeMessage) message.getPayload();
