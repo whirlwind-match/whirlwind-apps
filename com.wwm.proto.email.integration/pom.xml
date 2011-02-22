@@ -12,7 +12,7 @@
 	<properties>
 		<spring.version>3.1.0.M1</spring.version>
 		<spring-integration.version>2.0.3.RELEASE</spring-integration.version>
-		<junit.version>4.8.1</junit.version>
+		<junit.version>4.9</junit.version>
 		<slf4j.version>1.6.1</slf4j.version>
 		<log4j.version>1.2.16</log4j.version>
 	</properties>
