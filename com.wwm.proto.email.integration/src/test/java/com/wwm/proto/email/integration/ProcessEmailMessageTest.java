@@ -3,7 +3,7 @@ package com.wwm.proto.email.integration;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
@@ -15,7 +15,7 @@ import javax.mail.internet.MimeMessage;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.mockito.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,31 +29,42 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+
+/**
+ * Test inner parts of system.
+ * 
+ * We inject an inbound email into the emailIn channel, and check that correct messages appear
+ * on emailOut channel, or potentially an error channel.
+ * 
+ * @author Neale Upstone
+ *
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath*:/spring/common/*-context.xml")
-public class ReceiveEmailTest {
+public class ProcessEmailMessageTest {
 
-	private static Logger log = LoggerFactory.getLogger(ReceiveEmailTest.class);
+	private static Logger log = LoggerFactory.getLogger(ProcessEmailMessageTest.class);
 	
 	@Autowired
 	@Qualifier("emailIn")
-	private DirectChannel imapChannel;
+	private DirectChannel emailInChannel;
 	
 	
 	@Autowired
 	@Qualifier("emailOut")
-	private DirectChannel sendSmtpChannel;
+	private DirectChannel emailOutChannel;
 
 	@Autowired
 	private ConversationService conversationService; // mock
 
 	
-	protected MimeMessage receivedMessage;
+	protected MimeMessage outboundMessage;
 	
 	
 	@Before
 	public void setupConversationServiceMocks() {
-		Mockito.when(conversationService.getAccountsForConversation(anyString())).thenReturn(Arrays.asList("11111abc","11111def"));
+		when(conversationService.getAccountsForConversation(Matchers.eq("convId")))
+			.thenReturn(Arrays.asList("11111abc","11111def"));
 	}
 	
 	
@@ -62,7 +73,7 @@ public class ReceiveEmailTest {
 		
 		final CountDownLatch latch = new CountDownLatch(1);
 		
-		imapChannel.subscribe(new MessageHandler() {
+		emailOutChannel.subscribe(new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				log.info("Message: " + message);
@@ -70,7 +81,7 @@ public class ReceiveEmailTest {
 				try {
 					log.info(" from " + mail.getSender() + 
 							" : " + mail.getSubject());
-					receivedMessage = mail;
+					outboundMessage = mail;
 					latch.countDown();
 				}
 				catch (javax.mail.MessagingException e) {
@@ -79,32 +90,32 @@ public class ReceiveEmailTest {
 			}
 		});
 
-		log.info("=== Sending mail message ===" );
-		sendSmtpMessage();
+		log.info("=== Injecting inbound mail message ===" );
+		injectMessage();
 		
-		log.info("=== Mail message sent ===" );
+		log.info("=== Mail message injected ===" );
 
 		latch.await(30, TimeUnit.SECONDS);
-		assertThat(receivedMessage.getSubject(), is("[convId] message subject"));
-		assertThat((String)receivedMessage.getContent(), is("message body\r\n"));
-		InternetAddress sender = (InternetAddress) receivedMessage.getFrom()[0];
+		assertThat(outboundMessage.getSubject(), is("message subject"));
+		assertThat((String)outboundMessage.getContent(), is("message body\r\n"));
+		InternetAddress sender = (InternetAddress) outboundMessage.getFrom()[0];
 		assertThat(sender.getAddress(), is("fridgemountain.router@gmail.com"));
 	}
 
 
 	public static Message<String> createMailMessage() {
-		return MessageBuilder.withPayload("message body")
-				.setHeader(MailHeaders.SUBJECT, "[convId] message subject")
+		return MessageBuilder.withPayload("[message body")
+				.setHeader(MailHeaders.SUBJECT, "message subject")
 				.setHeader(MailHeaders.TO, "fridgemountain.router@gmail.com")
 //				.setHeader(MailHeaders.CC, "neale.upstone@opencredo.com")
 //				.setHeader(MailHeaders.BCC, "neale@nealeupstone.com")
-				.setHeader(MailHeaders.FROM, "no-reply@fridgemountain.com")
+				.setHeader(MailHeaders.FROM, "some.user@fridgemountain.com")
 				.setHeader(MailHeaders.REPLY_TO, "fridgemountain.router@gmail.com")
 				.build();
 	}
 		
-	private void sendSmtpMessage() {
-		sendSmtpChannel.send(createMailMessage());
+	private void injectMessage() {
+		emailInChannel.send(createMailMessage());
 		
 	}
 	
