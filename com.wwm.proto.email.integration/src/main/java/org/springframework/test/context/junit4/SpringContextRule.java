@@ -2,24 +2,75 @@ package org.springframework.test.context.junit4;
 
 import java.lang.reflect.Method;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.rules.ComplexRule;
+import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContextManager;
+import org.springframework.test.context.TestExecutionListeners;
 
-public class SpringContextRule extends ComplexRule {
+/**
+ * WARNING: PROOF OF CONCEPT.  DO NOT ASSUME PRODUCTION CODE ;)
+ * 
+ * A {@Rule} alternative to {@link SpringJUnit4ClassRunner}.
+ * <p>
+ * Currently used as follows:
+ * <pre>
+ *     &#064;Rule &#064;ClassRule
+ *     public static ComplexRule rule = new SpringContextRule();
+ * </pre> 
+ * What's missing is a way to provide class level test annotation data such as {@link ContextConfiguration}, 
+ * {@link TestExecutionListeners}.  Ideally if JUnit were to detect rules on annotations and to instantiate 
+ * this rule, we could create a meta-annotation with:<br>
+ * <pre>
+ * &#064;Rule(SpringContextRule.class)
+ * &#064;ContextConfiguration("classpath:/integrationTestContext.xml")
+ * &#064;TestExcutionListeners(...)
+ * </pre> 
+ * 
+ * @author Neale Upstone (skype: neale87)
+ */
+public class SpringContextRule implements TestRule {
 
-	private static final Log logger = LogFactory.getLog(SpringContextRule.class);
+//	private static final Log logger = LogFactory.getLog(SpringContextRule.class);
 
 	private TestContextManager testContextManager;
 
-	public SpringContextRule(String ...locations) {
-//		blah
+	/**
+	 * Currently the only way to create a SpringContextRule.
+	 * The rule will look for the usual Spring annotations etc on the test classes that this 
+	 * rule is applied to.
+	 */
+	public SpringContextRule() {
+	}
+	
+	/**
+	 * Possible alternative way to provide class level test annotation data is to subclass
+	 * SpringContextRule and provide annotation 
+	 * <pre>
+	 * &#064;ContextConfiguration("...")
+	 * &#064;TestExcutionListeners(...)
+	 * public class SpringIntegrationTestRule extends SpringContextRule {
+	 *     public SpringIntegrationtestRule() {
+	 *         super(true);
+	 *     }
+	 * }
+	 * </pre>  
+	 */
+	protected SpringContextRule(boolean useRuleClassAnnotations) {
+		// e.g. useRuleClassAnnotations = true;
+		throw new UnsupportedOperationException("Wishful thinking...?");
 	}
 
-	@Override
+	public Statement apply(Statement base, Description description, Object target) {
+		if (target == null) {
+			return applyClassRule(base, description, description.getTestClass());
+		}
+		else {
+			return applyMethodRule(base, description, target);
+		}
+	}
+	
 	protected Statement applyClassRule(final Statement base, Description description, Class<?> clazz) {
 
 		// TODO: clean this up 
@@ -41,15 +92,14 @@ public class SpringContextRule extends ComplexRule {
 		};
 	}
 
-	@Override
-	protected Statement applyMethodRule(final Statement base, Description description, final Object target) {
+	protected Statement applyMethodRule(final Statement base, final Description description, final Object target) {
 		
 		return new Statement() {
 			@Override
 			public void evaluate() throws Throwable {
 				getTestContextManager().prepareTestInstance(target);
-//			TODO	Method testMethod = description.getMethod();
-//				getTestContextManager().beforeTestMethod(target, testMethod);
+				Method testMethod = description.getMethod();
+				getTestContextManager().beforeTestMethod(target, testMethod);
 				Exception thrown = null;
 				try {
 					base.evaluate();
@@ -58,7 +108,7 @@ public class SpringContextRule extends ComplexRule {
 					thrown = e;
 				}
 				finally {
-//					getTestContextManager().afterTestMethod(target, testMethod, thrown);
+					getTestContextManager().afterTestMethod(target, testMethod, thrown);
 				}
 			}
 		};

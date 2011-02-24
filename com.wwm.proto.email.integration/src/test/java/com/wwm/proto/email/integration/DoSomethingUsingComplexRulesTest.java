@@ -5,7 +5,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.junit.ClassRule;
-import org.junit.rules.ComplexRule;
+import org.junit.rules.TestRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.DirectChannel;
@@ -17,7 +17,7 @@ public class DoSomethingUsingComplexRulesTest {
 
 	
 	@Rule @ClassRule
-	public static ComplexRule rule = new SpringContextRule("classpath*:/spring/common/*-context.xml");
+	public static TestRule rule = new SpringContextRule();
 	
 	
 	@Autowired
