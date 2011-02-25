@@ -8,9 +8,4 @@
 
 	<context:property-placeholder location="classpath:security-credentials.properties" system-properties-mode="OVERRIDE" />
 
-	<!-- TODO: Move this to own file or rename -->
-	<bean id="conversationService" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="com.wwm.proto.email.integration.ConversationService"/>
-	</bean>
-
 </beans>

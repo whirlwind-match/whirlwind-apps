@@ -3,19 +3,14 @@ package com.wwm.proto.email.integration;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyString;
-
-import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +24,17 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+/**
+ * External test to validate we're talking to servers sensibly.
+ * @author Neale
+ *
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath*:/spring/common/*-context.xml")
+@ContextConfiguration({
+	"classpath:/spring/common/channels-context.xml", 
+	"classpath:/spring/runtime/external-context.xml",
+	"classpath:/spring/test/property-substitution-context.xml",
+	})
 public class ReceiveEmailTest {
 
 	private static Logger log = LoggerFactory.getLogger(ReceiveEmailTest.class);
@@ -44,17 +48,8 @@ public class ReceiveEmailTest {
 	@Qualifier("emailOut")
 	private DirectChannel sendSmtpChannel;
 
-	@Autowired
-	private ConversationService conversationService; // mock
-
 	
 	protected MimeMessage receivedMessage;
-	
-	
-	@Before
-	public void setupConversationServiceMocks() {
-		Mockito.when(conversationService.getAccountsForConversation(anyString())).thenReturn(Arrays.asList("11111abc","11111def"));
-	}
 	
 	
 	@Test

@@ -8,17 +8,11 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
 
+	<description>
+		This context provides the external components of the system (i.e. those usually only active when deployed).
+		Typically these are channel adapters and gateways.
+	</description>
 
-	<import resource="classpath:property-substitution-context.xml" />
-
-	<int:channel id="emailIn" />
-	<int:channel id="validMessages"/>
-	<int:channel id="emailOut"/>
-	
-	<int-mail:imap-idle-channel-adapter
-		id="imapIdleAdapter" store-uri="imap://${inbound.imap.userid}:${inbound.imap.password}@imap.googlemail.com:993/[Gmail]/All Mail"
-		channel="emailIn" auto-startup="true" should-delete-messages="false" 
-		java-mail-properties="javaMailProperties" />
 		
 	<util:properties id="javaMailProperties">
 		<prop key="mail.imap.socketFactory.class">javax.net.ssl.SSLSocketFactory</prop>
@@ -27,19 +21,12 @@
 		<prop key="mail.debug">false</prop>
 		<prop key="mail.smtp.starttls.enable">true</prop>
 	</util:properties>
-	
-	<int:bridge id="todoSpamFilter" 
-		input-channel="emailIn" 
-		output-channel="validMessages"/>
-		
-	<int:header-enricher id="recipientListHeaderEnricher" 
-		input-channel="validMessages"
-		output-channel="emailOut"
-		ref="enricherImpl" method="enrichWithRecipientList"
-		/>
-		
-	<bean id="enricherImpl" class="com.wwm.proto.email.integration.RecipientListEnricher"/>
 
+	<int-mail:imap-idle-channel-adapter
+		id="imapIdleAdapter" store-uri="imap://${inbound.imap.userid}:${inbound.imap.password}@imap.googlemail.com:993/[Gmail]/All Mail"
+		channel="emailIn" auto-startup="true" should-delete-messages="false" 
+		java-mail-properties="javaMailProperties" />
+	
 	<int-mail:outbound-channel-adapter channel="emailOut" 
 		host="smtp.googlemail.com" port="587" 
 		auto-startup="true"
